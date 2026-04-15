@@ -4,8 +4,6 @@ A fast, private, browser-based Markdown → PDF converter. No sign-up, nothing s
 
 I built this because every other tool I tried wanted an account, pushed ads, or mangled my code blocks. This one doesn't.
 
-![screenshot placeholder — drop your own here]()
-
 ## What it does
 
 - **Live HTML preview** as you type (debounced, 300ms)
