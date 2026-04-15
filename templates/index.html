@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }} — Free Markdown to PDF Converter</title>
+    <meta name="description" content="{{ app_tagline }}">
+    <meta name="keywords" content="markdown to pdf, md to pdf, markdown converter, free pdf generator, online markdown editor">
+    <meta name="author" content="{{ app_name }}">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="canonical" href="{{ app_url }}/">
+    <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📄</text></svg>'>
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ app_name }} — Free Markdown to PDF Converter">
+    <meta property="og:description" content="{{ app_tagline }}">
+    <meta property="og:url" content="{{ app_url }}/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ app_name }} — Free Markdown to PDF Converter">
+    <meta name="twitter:description" content="{{ app_tagline }}">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "{{ app_name }}",
+        "description": "{{ app_tagline }}",
+        "url": "{{ app_url }}/",
+        "applicationCategory": "ProductivityApplication",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+    </script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --radius: 8px;
+            --shadow: 0 2px 4px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            display: flex; flex-direction: column;
+            background: var(--bg); color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            padding: 10px 18px; background: var(--primary); color: white;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: var(--shadow); flex-wrap: wrap; gap: 10px;
+            position: sticky; top: 0; z-index: 20;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand-logo { font-size: 1.4rem; }
+        .brand-name { font-size: 1.05rem; font-weight: 600; letter-spacing: -0.01em; }
+        .brand-tag { font-size: 0.72rem; opacity: 0.75; margin-left: 6px; display: none; }
+        @media (min-width: 900px) { .brand-tag { display: inline; } }
+
+        .controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .btn {
+            padding: 7px 13px; background: white; color: var(--primary); border: none;
+            border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.82rem;
+            transition: 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+            font-family: inherit;
+        }
+        .btn:hover { background: #e2e8f0; transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); }
+        .btn-ghost:hover { background: rgba(255,255,255,0.15); }
+        .btn-primary-lg { padding: 10px 20px; font-size: 0.9rem; background: var(--primary); color: white; }
+        .btn-primary-lg:hover { background: var(--primary-dark); }
+        .btn-danger { background: white; color: var(--danger); }
+
+        select, input[type="text"], input[type="password"] {
+            padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border);
+            font-size: 0.82rem; background: white; color: var(--text); font-family: inherit;
+        }
+        header select, header input[type="text"] { border: none; }
+        input[type="text"] { width: 130px; }
+
+        .pro-badge {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f;
+            padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+
+        .container { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+        .panel {
+            flex: 1; display: flex; flex-direction: column;
+            border-right: 1px solid var(--border); min-width: 0; position: relative;
+        }
+        .panel:last-child { border-right: none; }
+        .panel-header {
+            padding: 7px 14px; background: #eef2f7; font-size: 0.72rem; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.05em;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border); min-height: 32px;
+        }
+        .tabs { display: flex; gap: 4px; }
+        .tab { padding: 3px 10px; border-radius: 4px; cursor: pointer; font-size: 0.72rem; color: var(--text-muted); user-select: none; }
+        .tab:hover { background: rgba(37, 99, 235, 0.1); }
+        .tab.active { background: var(--primary); color: white; }
+
+        textarea {
+            flex: 1; padding: 18px; font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 13.5px; border: none; resize: none; outline: none;
+            background: var(--surface); line-height: 1.6; color: var(--text);
+        }
+        iframe { flex: 1; border: none; background: white; width: 100%; }
+        .hidden { display: none !important; }
+
+        .loader {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.85);
+            display: none; align-items: center; justify-content: center; z-index: 100;
+        }
+        .loader.visible { display: flex; }
+        .spinner {
+            width: 34px; height: 34px; border: 3px solid #cbd5e1;
+            border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .status { font-size: 0.78rem; color: rgba(255,255,255,0.9); }
+        .stats { font-size: 0.7rem; color: var(--text-muted); font-family: 'Consolas', monospace; }
+
+        .drop-overlay {
+            position: absolute; inset: 0; background: rgba(37, 99, 235, 0.08);
+            border: 3px dashed var(--primary); display: none; align-items: center; justify-content: center;
+            pointer-events: none; z-index: 5;
+        }
+        .drop-overlay.visible { display: flex; }
+        .drop-overlay span { background: var(--primary); color: white; padding: 12px 22px; border-radius: 8px; font-weight: 500; }
+
+        /* Toasts */
+        .toasts {
+            position: fixed; bottom: 20px; right: 20px; z-index: 200;
+            display: flex; flex-direction: column; gap: 8px; max-width: 320px;
+        }
+        .toast {
+            background: var(--text); color: white; padding: 12px 16px; border-radius: 8px;
+            box-shadow: var(--shadow-lg); font-size: 0.85rem; animation: slideIn 0.2s;
+            border-left: 4px solid var(--primary);
+        }
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.warning { border-left-color: #f59e0b; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            display: none; align-items: center; justify-content: center; z-index: 150; padding: 20px;
+        }
+        .modal-backdrop.visible { display: flex; }
+        .modal {
+            background: white; border-radius: 12px; max-width: 560px; width: 100%;
+            max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg);
+        }
+        .modal-header {
+            padding: 20px 24px 0; display: flex; justify-content: space-between; align-items: start;
+        }
+        .modal-header h2 { font-size: 1.3rem; margin: 0; }
+        .modal-close {
+            background: none; border: none; font-size: 1.6rem; cursor: pointer;
+            color: var(--text-muted); line-height: 1; padding: 0 4px;
+        }
+        .modal-close:hover { color: var(--text); }
+        .modal-body { padding: 16px 24px 24px; }
+        .modal-body p { margin: 0.7em 0; color: var(--text-muted); line-height: 1.6; font-size: 0.92rem; }
+        .modal-body h3 { font-size: 0.95rem; margin-top: 1.2em; margin-bottom: 0.4em; }
+        .feature-list { list-style: none; padding: 0; }
+        .feature-list li {
+            padding: 8px 0 8px 28px; position: relative; font-size: 0.9rem; color: var(--text);
+        }
+        .feature-list li::before {
+            content: "✓"; position: absolute; left: 0; top: 8px;
+            color: var(--success); font-weight: bold;
+        }
+        .input-group { display: flex; gap: 8px; margin-top: 10px; }
+        .input-group input { flex: 1; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.9rem; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .tier-card {
+            border: 1px solid var(--border); border-radius: 8px; padding: 16px;
+            margin: 10px 0; background: #f8fafc;
+        }
+        .tier-card.pro { border-color: #f59e0b; background: linear-gradient(135deg, #fffbeb, #fef3c7); }
+        .tier-card h4 { margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            header { padding: 10px 12px; }
+            .brand-name { font-size: 0.95rem; }
+            .container { flex-direction: column; }
+            .panel { border-right: none; border-bottom: 1px solid var(--border); min-height: 40vh; }
+            .panel:last-child { border-bottom: none; }
+            .controls { gap: 4px; }
+            .btn { padding: 6px 10px; font-size: 0.78rem; }
+            input[type="text"] { width: 100px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand">
+            <span class="brand-logo">📄</span>
+            <span class="brand-name">{{ app_name }}</span>
+            <span class="brand-tag">· Free · Private · No sign-up</span>
+        </div>
+        <div class="controls">
+            <span id="proBadge" class="pro-badge hidden">PRO</span>
+            <span class="status" id="statusText">Ready</span>
+            <input type="text" id="filenameInput" placeholder="filename" value="document">
+            <select id="themeSelect" title="Theme">
+                <option value="github">GitHub</option>
+                <option value="academic">Academic</option>
+                <option value="minimal">Minimal</option>
+                <option value="dark">Dark</option>
+            </select>
+            <select id="pageSizeSelect" title="Page size">
+                <option value="A4">A4</option>
+                <option value="Letter">Letter</option>
+            </select>
+            <select id="templateSelect" title="Load template">
+                <option value="">Templates…</option>
+                <option value="resume">Resume</option>
+                <option value="report">Business Report</option>
+                <option value="letter">Formal Letter</option>
+                <option value="paper">Academic Paper</option>
+            </select>
+            <label class="btn btn-ghost" for="fileInput">Upload</label>
+            <input type="file" id="fileInput" accept=".md,.markdown,.txt" class="hidden">
+            <button class="btn btn-ghost" id="aboutBtn" title="About & privacy">About</button>
+            {% if pro_enabled %}
+            <button class="btn btn-ghost" id="upgradeBtn" title="Upgrade to Pro">★ Pro</button>
+            {% endif %}
+            <button class="btn" id="convertBtn" title="Generate PDF (Ctrl+S)">Generate PDF</button>
+            <a id="downloadLink" class="btn hidden" download="document.pdf">⬇ Download</a>
+        </div>
+    </header>
+    <div class="container">
+        <div class="panel" id="editorPanel">
+            <div class="panel-header">
+                <span>Markdown</span>
+                <span class="stats" id="stats">0 words · 0 chars · 0 min read</span>
+            </div>
+            <textarea id="mdInput" spellcheck="false" placeholder="# Paste your Markdown here...&#10;&#10;Or drop a .md file into this panel."></textarea>
+            <div class="drop-overlay" id="dropOverlay"><span>Drop your .md file to load</span></div>
+        </div>
+        <div class="panel">
+            <div class="panel-header">
+                <span>Preview</span>
+                <div class="tabs">
+                    <span class="tab active" data-view="html">HTML</span>
+                    <span class="tab" data-view="pdf">PDF</span>
+                </div>
+            </div>
+            <iframe id="htmlPreview" title="HTML preview"></iframe>
+            <iframe id="pdfPreview" class="hidden" title="PDF preview"></iframe>
+        </div>
+    </div>
+
+    <div class="loader" id="loader"><div class="spinner"></div></div>
+    <div class="toasts" id="toasts"></div>
+
+    <!-- About modal -->
+    <div class="modal-backdrop" id="aboutModal">
+        <div class="modal" role="dialog" aria-labelledby="aboutTitle">
+            <div class="modal-header">
+                <h2 id="aboutTitle">About {{ app_name }}</h2>
+                <button class="modal-close" data-close="aboutModal" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <p>{{ app_tagline }}</p>
+
+                <h3>Features</h3>
+                <ul class="feature-list">
+                    <li>Live HTML preview as you type</li>
+                    <li>Four professional themes (GitHub, Academic, Minimal, Dark)</li>
+                    <li>YAML front matter → cover page + auto TOC</li>
+                    <li>Page numbers & footer</li>
+                    <li>Syntax-highlighted code blocks</li>
+                    <li>Drag-and-drop .md files</li>
+                    <li>Starter templates (Resume, Report, Letter, Paper)</li>
+                    <li>Autosave to your browser · no account needed</li>
+                </ul>
+
+                <h3>Privacy</h3>
+                <p>Your documents are processed on the server only long enough to render the PDF, then discarded. Nothing is stored, logged, or shared. Your editor content is also saved locally in your browser so you can pick up where you left off.</p>
+
+                <h3>Support this project</h3>
+                <p>If you find this useful, consider supporting development — it keeps the tool free and ad-free for everyone.</p>
+            </div>
+            <div class="modal-footer">
+                {% if contact_email %}<a href="mailto:{{ contact_email }}" class="btn btn-ghost" style="color:var(--text); border-color:var(--border);">Contact</a>{% endif %}
+                <a href="{{ donate_url }}" target="_blank" rel="noopener" class="btn btn-primary-lg">☕ Buy me a coffee</a>
+            </div>
+        </div>
+    </div>
+
+    {% if pro_enabled %}
+    <!-- Upgrade modal -->
+    <div class="modal-backdrop" id="upgradeModal">
+        <div class="modal" role="dialog" aria-labelledby="upgradeTitle">
+            <div class="modal-header">
+                <h2 id="upgradeTitle">Upgrade to Pro</h2>
+                <button class="modal-close" data-close="upgradeModal" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="tier-card">
+                    <h4>Free</h4>
+                    <ul class="feature-list">
+                        <li>All themes & templates</li>
+                        <li>Up to 50 KB documents</li>
+                        <li>10 PDFs / hour</li>
+                        <li>Small "Created with" footer</li>
+                    </ul>
+                </div>
+                <div class="tier-card pro">
+                    <h4>Pro <span class="pro-badge">PRO</span></h4>
+                    <ul class="feature-list">
+                        <li>Up to 1 MB documents</li>
+                        <li>200 PDFs / hour</li>
+                        <li>No watermark</li>
+                        <li>Priority rendering</li>
+                        <li>Support the developer ❤</li>
+                    </ul>
+                </div>
+
+                <h3>Already have a key?</h3>
+                <p style="font-size:0.85rem">Enter your license key below. It's saved in your browser only.</p>
+                <div class="input-group">
+                    <input type="password" id="proKeyInput" placeholder="Enter license key">
+                    <button class="btn btn-primary-lg" id="saveProKey">Activate</button>
+                </div>
+                <p id="proKeyMsg" style="font-size:0.82rem; margin-top:8px;"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="clearProKey" style="color:var(--danger); border-color:var(--danger);">Clear key</button>
+                <a href="{{ donate_url }}" target="_blank" rel="noopener" class="btn btn-primary-lg">Get a Pro key</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+        const mdInput = $('mdInput');
+        const convertBtn = $('convertBtn');
+        const downloadLink = $('downloadLink');
+        const htmlPreview = $('htmlPreview');
+        const pdfPreview = $('pdfPreview');
+        const loader = $('loader');
+        const statusText = $('statusText');
+        const filenameInput = $('filenameInput');
+        const themeSelect = $('themeSelect');
+        const pageSizeSelect = $('pageSizeSelect');
+        const templateSelect = $('templateSelect');
+        const fileInput = $('fileInput');
+        const stats = $('stats');
+        const editorPanel = $('editorPanel');
+        const dropOverlay = $('dropOverlay');
+        const tabs = document.querySelectorAll('.tab');
+        const toasts = $('toasts');
+        const aboutBtn = $('aboutBtn');
+        const aboutModal = $('aboutModal');
+        const upgradeBtn = $('upgradeBtn');
+        const upgradeModal = $('upgradeModal');
+        const proBadge = $('proBadge');
+        const proKeyInput = $('proKeyInput');
+        const saveProKey = $('saveProKey');
+        const clearProKey = $('clearProKey');
+        const proKeyMsg = $('proKeyMsg');
+
+        const STORAGE_KEY = 'mdtopdf:state';
+        const PRO_KEY_STORAGE = 'mdtopdf:pro_key';
+
+        // ---- Templates ----
+        const TEMPLATES = {
+            resume: `---
+title: Jane Doe
+subtitle: Senior Software Engineer
+author: jane@example.com · +1 (555) 123-4567
+date: San Francisco, CA
+---
+
+## Summary
+Senior engineer with 8+ years building scalable web systems. Strong in Python, TypeScript, and distributed systems.
+
+## Experience
+
+### Senior Engineer — Acme Corp
+*2022 – Present*
+- Led migration of monolith to event-driven microservices (40% latency drop).
+- Mentored 5 engineers, ran weekly architecture reviews.
+
+### Software Engineer — Beta Inc
+*2019 – 2022*
+- Shipped core payments pipeline processing $2M/day.
+- Reduced p99 latency by 60% through query optimization.
+
+## Skills
+- **Languages:** Python, TypeScript, Go, SQL
+- **Infra:** AWS, Kubernetes, Terraform, PostgreSQL
+- **Tools:** Git, Docker, CI/CD, Grafana
+
+## Education
+**B.S. Computer Science** — State University, 2018
+`,
+            report: `---
+title: Q1 2026 Performance Report
+subtitle: Revenue, growth, and key initiatives
+author: Product & Analytics Team
+date: April 15, 2026
+toc: true
+---
+
+## Executive Summary
+Revenue grew **22% YoY** this quarter, driven primarily by the enterprise tier launch and expansion into EMEA. Key metrics exceeded targets across retention, NPS, and ARPU.
+
+## Key Metrics
+| Metric | Q4 2025 | Q1 2026 | Change |
+|--------|---------|---------|--------|
+| MRR | $420K | $512K | +22% |
+| Active users | 14,200 | 18,900 | +33% |
+| Churn | 4.1% | 3.2% | -0.9pp |
+| NPS | 42 | 51 | +9 |
+
+## Highlights
+- Enterprise tier launched on Feb 10
+- EMEA region operational since Mar 1
+- Reduced infrastructure cost per user by 18%
+
+## Risks & Mitigations
+> Support volume is growing faster than headcount. Hiring 3 additional agents in Q2.
+
+## Next Quarter
+1. Launch API marketplace
+2. Expand to APAC
+3. Ship mobile apps for iOS and Android
+`,
+            letter: `---
+title: Cover Letter
+author: Jane Doe
+date: April 15, 2026
+---
+
+Jane Doe
+123 Main Street
+San Francisco, CA 94102
+
+April 15, 2026
+
+Hiring Manager
+Acme Corporation
+456 Market Street
+San Francisco, CA 94105
+
+Dear Hiring Manager,
+
+I am writing to express my interest in the Senior Software Engineer position at Acme Corporation. With over eight years of experience building scalable web applications and leading engineering teams, I believe I would be a strong addition to your team.
+
+In my current role at Beta Inc, I have led the migration of a legacy monolith to an event-driven microservices architecture, reducing p99 latency by 40% while improving deployment velocity. I am particularly drawn to Acme's commitment to engineering excellence and open source.
+
+I would welcome the opportunity to discuss how my background aligns with your team's goals. Thank you for your consideration.
+
+Sincerely,
+
+Jane Doe
+`,
+            paper: `---
+title: The Impact of Static Typing on Large-Scale Codebases
+subtitle: A Five-Year Longitudinal Study
+author: A. Researcher, B. Collaborator
+date: April 2026
+toc: true
+---
+
+## Abstract
+We examine the effect of gradual static typing adoption on defect rates, developer productivity, and onboarding time in large-scale JavaScript codebases. Our findings suggest measurable improvements in maintainability across all three axes.
+
+## 1. Introduction
+Static typing has long been a subject of debate in software engineering [1]. This study investigates its concrete impact on codebases exceeding 500k lines of code.
+
+## 2. Methodology
+We analyzed 14 open-source projects that migrated from JavaScript to TypeScript between 2020 and 2024. For each project, we tracked:
+
+1. Commit-level defect density
+2. Time-to-first-commit for new contributors
+3. Cycle time for feature pull requests
+
+## 3. Results
+| Metric | Pre-migration | Post-migration | Δ |
+|--------|--------------:|---------------:|---:|
+| Defects per KLOC | 4.2 | 2.7 | −36% |
+| Onboarding days | 18 | 11 | −39% |
+| PR cycle time (h) | 72 | 54 | −25% |
+
+## 4. Discussion
+The results suggest static typing provides non-trivial benefits at scale, though trade-offs in short-term development speed were observed in the first six months post-migration.
+
+## 5. Conclusion
+Gradual typing adoption appears to yield durable maintainability gains. Future work should examine the role of tooling maturity as a confounder.
+
+## References
+1. Hanenberg, S. (2010). *An experiment about static and dynamic type systems.*
+2. Gao, Z., et al. (2017). *To type or not to type: quantifying detectable bugs in JavaScript.*
+`,
+        };
+
+        const DEFAULT_SAMPLE = `---
+title: Welcome to Markdown to PDF
+subtitle: A production-ready converter
+author: Your Name Here
+date: 2026-04-15
+toc: true
+---
+
+# Getting Started
+
+Start typing Markdown on the left — the preview updates live.
+
+## Features
+- **Live HTML preview** as you type
+- **Four themes**: GitHub, Academic, Minimal, Dark
+- **YAML front matter** — cover page, author, date
+- **Auto table of contents** when \`toc: true\`
+- **Syntax highlighting** in code blocks
+- **Templates** (top bar) — Resume, Report, Letter, Paper
+- **Drag-and-drop** .md files into the editor
+- **Keyboard shortcut**: Ctrl+S to generate PDF
+
+\`\`\`python
+def greet(name):
+    return f"Hello, {name}!"
+\`\`\`
+
+> Click **About** in the top bar to learn more, or **Generate PDF** to export.
+`;
+
+        let previewTimer = null;
+        let saveTimer = null;
+        let appConfig = null;
+
+        // ---- Toasts ----
+        function toast(message, kind = 'info', ms = 3500) {
+            const el = document.createElement('div');
+            el.className = `toast ${kind}`;
+            el.textContent = message;
+            toasts.appendChild(el);
+            setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(40%)'; el.style.transition = '0.25s'; }, ms - 250);
+            setTimeout(() => el.remove(), ms);
+        }
+
+        // ---- Modals ----
+        function openModal(id) { $(id).classList.add('visible'); }
+        function closeModal(id) { $(id).classList.remove('visible'); }
+        document.querySelectorAll('.modal-close').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.close)));
+        document.querySelectorAll('.modal-backdrop').forEach(m => m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('visible'); }));
+        aboutBtn.addEventListener('click', () => openModal('aboutModal'));
+        if (upgradeBtn) upgradeBtn.addEventListener('click', () => openModal('upgradeModal'));
+
+        // ---- Tabs ----
+        function setView(view) {
+            tabs.forEach(t => t.classList.toggle('active', t.dataset.view === view));
+            htmlPreview.classList.toggle('hidden', view !== 'html');
+            pdfPreview.classList.toggle('hidden', view !== 'pdf');
+        }
+        tabs.forEach(t => t.addEventListener('click', () => setView(t.dataset.view)));
+
+        // ---- Stats ----
+        function updateStats() {
+            const text = mdInput.value;
+            const chars = text.length;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const minutes = Math.max(1, Math.round(words / 200));
+            stats.textContent = `${words} words · ${chars} chars · ${minutes} min read`;
+        }
+
+        // ---- Pro key ----
+        function getProKey() { return localStorage.getItem(PRO_KEY_STORAGE) || ''; }
+        function setProKey(k) { if (k) localStorage.setItem(PRO_KEY_STORAGE, k); else localStorage.removeItem(PRO_KEY_STORAGE); }
+        function proHeaders() {
+            const k = getProKey();
+            return k ? { 'X-Pro-Key': k } : {};
+        }
+
+        async function refreshConfig() {
+            try {
+                const r = await fetch('/api/config', { headers: proHeaders() });
+                appConfig = await r.json();
+                proBadge.classList.toggle('hidden', !appConfig.is_pro);
+            } catch (e) {}
+        }
+
+        if (saveProKey) {
+            saveProKey.addEventListener('click', async () => {
+                const key = proKeyInput.value.trim();
+                if (!key) { proKeyMsg.textContent = 'Enter a key first.'; proKeyMsg.style.color = 'var(--danger)'; return; }
+                try {
+                    const r = await fetch('/api/verify-key', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ key }),
+                    });
+                    const data = await r.json();
+                    if (data.valid) {
+                        setProKey(key);
+                        proKeyMsg.textContent = '✓ Pro activated!';
+                        proKeyMsg.style.color = 'var(--success)';
+                        await refreshConfig();
+                        toast('Pro activated', 'success');
+                    } else {
+                        proKeyMsg.textContent = '✗ Invalid key.';
+                        proKeyMsg.style.color = 'var(--danger)';
+                    }
+                } catch (e) {
+                    proKeyMsg.textContent = 'Error verifying key.';
+                    proKeyMsg.style.color = 'var(--danger)';
+                }
+            });
+        }
+        if (clearProKey) {
+            clearProKey.addEventListener('click', async () => {
+                setProKey('');
+                proKeyInput.value = '';
+                proKeyMsg.textContent = 'Key cleared.';
+                proKeyMsg.style.color = 'var(--text-muted)';
+                await refreshConfig();
+                toast('Pro key cleared', 'info');
+            });
+        }
+
+        // ---- Preview ----
+        async function updateHtmlPreview() {
+            try {
+                const response = await fetch('/preview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...proHeaders() },
+                    body: JSON.stringify({ markdown: mdInput.value, theme: themeSelect.value }),
+                });
+                const html = await response.text();
+                htmlPreview.srcdoc = html;
+            } catch (err) {
+                statusText.textContent = 'Preview error';
+            }
+        }
+        function schedulePreview() {
+            clearTimeout(previewTimer);
+            previewTimer = setTimeout(updateHtmlPreview, 300);
+        }
+
+        // ---- Autosave ----
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    markdown: mdInput.value,
+                    filename: filenameInput.value,
+                    theme: themeSelect.value,
+                    pageSize: pageSizeSelect.value,
+                }));
+                statusText.textContent = 'Saved';
+            } catch (e) {}
+        }
+        function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(saveState, 500); }
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return false;
+                const s = JSON.parse(raw);
+                if (s.markdown) mdInput.value = s.markdown;
+                if (s.filename) filenameInput.value = s.filename;
+                if (s.theme) themeSelect.value = s.theme;
+                if (s.pageSize) pageSizeSelect.value = s.pageSize;
+                return true;
+            } catch (e) { return false; }
+        }
+
+        // ---- Convert ----
+        async function generatePDF() {
+            const markdown = mdInput.value.trim();
+            if (!markdown) { toast('Please enter Markdown content first', 'warning'); return; }
+
+            loader.classList.add('visible');
+            convertBtn.disabled = true;
+            statusText.textContent = 'Generating PDF...';
+            downloadLink.classList.add('hidden');
+
+            try {
+                const response = await fetch('/convert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...proHeaders() },
+                    body: JSON.stringify({
+                        markdown,
+                        filename: filenameInput.value || 'document',
+                        page_size: pageSizeSelect.value,
+                        theme: themeSelect.value,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    if (response.status === 413 || response.status === 429) {
+                        toast(err.error, 'warning', 5000);
+                        if (upgradeBtn) openModal('upgradeModal');
+                    } else {
+                        toast(err.error || `Server error: ${response.status}`, 'error');
+                    }
+                    throw new Error(err.error || 'Conversion failed');
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                pdfPreview.src = url;
+                downloadLink.href = url;
+                downloadLink.download = (filenameInput.value || 'document') + '.pdf';
+                downloadLink.classList.remove('hidden');
+                statusText.textContent = 'PDF ready ✓';
+                setView('pdf');
+                toast('PDF generated successfully', 'success');
+            } catch (err) {
+                statusText.textContent = 'Error';
+            } finally {
+                loader.classList.remove('visible');
+                convertBtn.disabled = false;
+            }
+        }
+
+        // ---- File upload ----
+        async function handleFile(file) {
+            if (!file) return;
+            if (!/\.(md|markdown|txt)$/i.test(file.name)) {
+                toast('Please upload a .md, .markdown, or .txt file', 'warning');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const response = await fetch('/upload', { method: 'POST', body: formData });
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({ error: 'Upload failed' }));
+                    throw new Error(err.error);
+                }
+                const data = await response.json();
+                mdInput.value = data.markdown;
+                filenameInput.value = data.filename;
+                updateStats();
+                updateHtmlPreview();
+                saveState();
+                toast(`Loaded ${file.name}`, 'success');
+            } catch (err) {
+                toast('Upload failed: ' + err.message, 'error');
+            }
+        }
+
+        // ---- Events ----
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+        convertBtn.addEventListener('click', generatePDF);
+
+        templateSelect.addEventListener('change', () => {
+            const key = templateSelect.value;
+            if (!key || !TEMPLATES[key]) return;
+            mdInput.value = TEMPLATES[key];
+            filenameInput.value = key;
+            templateSelect.value = '';
+            updateStats();
+            updateHtmlPreview();
+            saveState();
+            toast(`Loaded ${key} template`, 'success');
+        });
+
+        mdInput.addEventListener('input', () => {
+            updateStats();
+            schedulePreview();
+            scheduleSave();
+        });
+        [filenameInput, themeSelect, pageSizeSelect].forEach(el => {
+            el.addEventListener('change', () => {
+                scheduleSave();
+                if (el === themeSelect) updateHtmlPreview();
+            });
+        });
+
+        // Drag-and-drop
+        ['dragenter', 'dragover'].forEach(evt => {
+            editorPanel.addEventListener(evt, (e) => { e.preventDefault(); dropOverlay.classList.add('visible'); });
+        });
+        ['dragleave', 'drop'].forEach(evt => {
+            editorPanel.addEventListener(evt, (e) => {
+                if (evt === 'dragleave' && e.target !== editorPanel) return;
+                dropOverlay.classList.remove('visible');
+            });
+        });
+        editorPanel.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                generatePDF();
+            }
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-backdrop.visible').forEach(m => m.classList.remove('visible'));
+            }
+        });
+
+        // Init
+        if (!loadState()) mdInput.value = DEFAULT_SAMPLE;
+        updateStats();
+        updateHtmlPreview();
+        refreshConfig();
+    </script>
+</body>
+</html>

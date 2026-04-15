@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart
+markdown
+xhtml2pdf
+pygments
+pyyaml
+python-dotenv

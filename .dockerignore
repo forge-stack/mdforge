@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+.env
+.env.local
+*.md
+!README.md
+.python-version
+uv.lock
+pyproject.toml
+.vscode/
+.idea/
+.claude/
+*.log
